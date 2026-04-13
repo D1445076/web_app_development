@@ -1,97 +1,225 @@
-# 系統架構設計：線上算命系統
+# 系統架構文件（Architecture）
+
+**專案名稱：** 個人任務管理系統  
+**文件版本：** v1.0  
+**撰寫日期：** 2026-04-13  
+**依據文件：** [docs/PRD.md](./PRD.md)
+
+---
 
 ## 1. 技術架構說明
 
-本專案採用伺服器端渲染（Server-Side Rendering, SSR）架構，不進行前後端分離，以保持架構單純，適合快速開發與驗證 MVP（最小可行性產品）。
+### 1.1 選用技術與原因
 
-- **選用技術與原因**：
-  - **後端：Python + Flask**。Flask 是一個輕量級的網頁框架，學習曲線平緩，非常適合用來快速建立只有少數路由與功能的小型系統。
-  - **模板引擎：Jinja2**。內建於 Flask 中，可以直接在 HTML 中寫入 Python 變數與邏輯（如迴圈、條件判斷），快速實現動態網頁渲染。
-  - **資料庫：SQLite**。這是一個輕量級的關聯式資料庫，不需要額外架設伺服器，資料儲存在單一檔案中，非常適合初期的使用者紀錄與香油錢捐獻紀錄。
+| 技術 | 版本建議 | 選用原因 |
+|------|----------|----------|
+| **Python** | 3.10+ | 語法清晰、生態豐富，適合初學者快速上手 |
+| **Flask** | 3.x | 輕量級 Web 框架，零設定即可啟動，適合 MVP 快速開發 |
+| **Jinja2** | 隨 Flask 附帶 | Flask 內建模板引擎，可直接在 HTML 中渲染後端資料 |
+| **SQLAlchemy** | 2.x | ORM 工具，用物件操作資料庫，自動防止 SQL Injection |
+| **SQLite** | 隨 Python 附帶 | 無需安裝伺服器，資料存成單一 `.db` 檔，開發與部署都方便 |
+| **Vanilla CSS** | — | 無額外依賴，搭配 RWD 媒體查詢即可完成響應式設計 |
+| **JavaScript（少量）** | — | 僅用於前端篩選切換，不做複雜互動 |
 
-- **Flask MVC 模式說明**：
-  - **Model（模型）**：負責與資料庫（SQLite）溝通。例如定義 `User`（使用者）與 `History`（算命紀錄）等資料表結構，並處理資料的新增、查詢。
-  - **View（視圖）**：負責畫面呈現，由 Jinja2 搭配 HTML/CSS/JS 構成。用來呈現抽籤結果、捐獻表單與歷史紀錄畫面。
-  - **Controller（控制器）**：由 Flask 的路由 (`routes`) 擔任。負責接收來自使用者的 Request（如點擊抽籤、註冊會員、送出捐獻表單），調用 Model 去要資料，最後把資料傳給 View 來產生畫面回傳給使用者。
+### 1.2 Flask MVC 模式說明
+
+本系統採用 **MVC（Model / View / Controller）** 架構模式：
+
+```
+┌─────────────┬──────────────────────────────────────────────────────────┐
+│    層級      │  職責說明                                                 │
+├─────────────┼──────────────────────────────────────────────────────────┤
+│  Model      │  定義資料結構（Task 資料表）、處理資料庫的 CRUD 操作         │
+│  （模型層）  │  位置：app/models/task.py                                  │
+├─────────────┼──────────────────────────────────────────────────────────┤
+│  View       │  Jinja2 HTML 模板，負責將資料呈現給使用者，不含業務邏輯      │
+│  （視圖層）  │  位置：app/templates/                                      │
+├─────────────┼──────────────────────────────────────────────────────────┤
+│  Controller │  Flask 路由函式，接收 HTTP Request、呼叫 Model、回傳 View   │
+│  （控制層）  │  位置：app/routes/tasks.py                                 │
+└─────────────┴──────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## 2. 專案資料夾結構
 
-以下是專案預計的資料夾結構，每個目錄與檔案皆有明確的職責劃分：
-
-```text
-web_app_development/
-├── app/
-│   ├── models/             ← 資料庫模型 (Models)
-│   │   ├── __init__.py
-│   │   ├── user.py         ← 會員資料表定義 (處理註冊登入)
-│   │   └── record.py       ← 算命紀錄與捐獻紀錄資料表定義
-│   ├── routes/             ← Flask 路由 (Controllers)
-│   │   ├── __init__.py
-│   │   ├── main.py         ← 首頁與算命/抽籤的核心路由
-│   │   ├── auth.py         ← 註冊、登入與登出路由
-│   │   └── api.py          ← (可選) 處理前端 AJAX 請求，像是香油錢捐獻 API
-│   ├── templates/          ← Jinja2 HTML 模板 (Views)
-│   │   ├── base.html       ← 共用模板（包含標頭、導覽列、頁尾）
-│   │   ├── index.html      ← 首頁/算命介面
-│   │   ├── result.html     ← 抽籤/算命結果顯示頁面
-│   │   ├── history.html    ← 會員中心與歷史紀錄頁面
-│   │   ├── donate.html     ← 香油錢捐獻頁面
-│   │   └── auth/           ← 身份驗證相關視圖
-│   │       ├── login.html
-│   │       └── register.html
-│   └── static/             ← CSS / JS 等靜態資源
-│       ├── css/
-│       │   └── style.css   ← 全站共用樣式 (如需客製化或擴充 Tailwind)
-│       ├── js/
-│       │   └── custom.js   ← 處理抽籤動畫等前端互動腳本
-│       └── images/         ← 籤筒、擲筊、籤詩圖片等
-├── instance/
-│   └── database.db         ← SQLite 資料庫 (存放實際資料，不進版本控制)
-├── docs/                   ← 專案設計文件 (PRD, 架構文件等)
-├── .gitignore              ← Git 忽略檔案設定
-├── app.py                  ← 專案入口檔 (初始化 Flask App)
-└── requirements.txt        ← Python 套件依賴清單
 ```
+web_app_development/          ← 專案根目錄
+│
+├── app/                      ← Flask 應用程式主體
+│   ├── __init__.py           ← 建立 Flask app、初始化 SQLAlchemy、註冊 Blueprint
+│   │
+│   ├── models/               ← 資料庫模型（Model 層）
+│   │   ├── __init__.py
+│   │   └── task.py           ← Task 資料表（id, title, is_done, created_at）
+│   │
+│   ├── routes/               ← 路由處理（Controller 層）
+│   │   ├── __init__.py
+│   │   └── tasks.py          ← 任務相關路由（新增、完成、刪除、列表）
+│   │
+│   ├── templates/            ← Jinja2 HTML 模板（View 層）
+│   │   ├── base.html         ← 基底模板（導覽列、共用 CSS/JS 引入）
+│   │   └── tasks/
+│   │       └── index.html    ← 任務清單主頁（含新增表單與任務列表）
+│   │
+│   └── static/               ← 靜態資源
+│       ├── css/
+│       │   └── style.css     ← 全站樣式（含 RWD 響應式設計）
+│       └── js/
+│           └── filter.js     ← 前端篩選功能（全部 / 待完成 / 已完成切換）
+│
+├── instance/                 ← Flask instance 資料夾（不納入版本控制）
+│   └── database.db           ← SQLite 資料庫檔案
+│
+├── docs/                     ← 專案文件
+│   ├── PRD.md                ← 產品需求文件（已完成）
+│   ├── ARCHITECTURE.md       ← 本文件
+│   ├── DB_Schema.md          ← 資料庫設計（待產出）
+│   └── API_Design.md         ← 路由與 API 設計（待產出）
+│
+├── app.py                    ← 應用程式入口（flask run 起點）
+├── requirements.txt          ← Python 套件清單
+├── .gitignore                ← 排除 instance/、__pycache__/ 等
+└── README.md                 ← 專案說明
+```
+
+---
 
 ## 3. 元件關係圖
 
-以下展示使用者從瀏覽器發出請求，到系統處理並回傳畫面的完整流程（MVC 資料流）：
+### 3.1 整體資料流（以「新增任務」為例）
 
 ```mermaid
-graph TD
-    %% 定義節點
-    Browser(瀏覽器 - 使用者)
-    
-    subgraph Flask Application
-        Route[Flask Route<br>Controller]
-        Model[Model<br>Database Logic]
-        Template[Jinja2 Template<br>View]
-    end
-    
-    DB[(SQLite<br>Database)]
+sequenceDiagram
+    actor 使用者
+    participant Browser as 瀏覽器
+    participant Route as "Flask Route (tasks.py)"
+    participant Model as "Task Model (task.py)"
+    participant DB as "SQLite (database.db)"
+    participant Template as "Jinja2 Template (index.html)"
 
-    %% 流程線
-    Browser -- "1. 發出 HTTP Request (如點擊抽籤)" --> Route
-    Route -- "2. 要求查詢或寫入紀錄" --> Model
-    Model -- "資料讀寫" --> DB
-    Model -. "3. 回傳資料物件" .-> Route
-    Route -- "4. 傳遞變數給視圖渲染" --> Template
-    Template -. "5. 生成完整 HTML" .-> Route
-    Route -. "6. 回傳 HTTP Response (HTML)" .-> Browser
-
-    %% 樣式設定
-    classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px;
-    classDef highlight fill:#d4edda,stroke:#28a745,stroke-width:2px;
-    class Route,Model,Template highlight;
+    使用者->>Browser: 輸入任務名稱，點擊「新增」
+    Browser->>Route: POST /tasks
+    Route->>Model: Task(title=..., is_done=False)
+    Model->>DB: INSERT INTO task
+    DB-->>Model: 成功
+    Model-->>Route: 新 Task 物件
+    Route->>Browser: redirect → GET /tasks
+    Browser->>Route: GET /tasks
+    Route->>Model: Task.query.order_by(created_at.desc()).all()
+    Model->>DB: SELECT * FROM task ORDER BY created_at DESC
+    DB-->>Model: 任務清單
+    Model-->>Route: [Task, Task, ...]
+    Route->>Template: render_template('tasks/index.html', tasks=[...])
+    Template-->>Browser: 完整 HTML 頁面
+    Browser-->>使用者: 顯示含新任務的清單
 ```
+
+### 3.2 元件依賴關係
+
+```
+app.py
+  └── app/__init__.py
+        ├── Flask()              ← 建立應用程式
+        ├── SQLAlchemy(app)      ← 連接資料庫
+        └── Blueprint 註冊
+              └── app/routes/tasks.py        (Controller)
+                    ├── 依賴 app/models/task.py  (Model)
+                    └── 渲染 app/templates/tasks/ (View)
+                              └── 繼承 base.html
+                                    ├── 引用 static/css/style.css
+                                    └── 引用 static/js/filter.js
+```
+
+---
 
 ## 4. 關鍵設計決策
 
-1. **不分離前後端，採用 Jinja2 直接渲染頁面**
-   - **原因**：考量到這是一個以內容呈現與表單遞交為主的 MVP 專案，採用伺服器端渲染能省去前端框架設置以及 API 串接等跨域 (CORS) 複雜度，開發速度更快，也可以更容易處理 SEO（若未來有需要）。
-2. **利用 Flask Blueprints 按功能拆分路由**
-   - **原因**：為了避免所有的功能（算命、登入、捐款）都混雜在同一個 `app.py` 中，我們在 `routes/` 資料夾下利用 Blueprint 切分不同的負責範圍（例如 `main.py`, `auth.py`）。這樣可以保持程式碼整潔，方便未來擴充或除錯。
-3. **資料庫單純化，採用 SQLite**
-   - **原因**：系統初期主要需要記錄「會員帳號」與「過去抽籤結果」，資料量與併發數不大。選用 SQLite 不需要額外架設資料庫伺服器，且在 Python 內建支援極佳，備份也非常容易（只要拷貝一個 .db 檔案）。
-4. **抽籤/擲筊等動畫效果交由前端 JavaScript 實作**
-   - **原因**：互動動畫（例如搖晃籤筒、丟擲筊杯）是不需要頻繁往返後端邏輯的視覺效果。為確保畫面流暢自然，這些互動將在前端使用純 JavaScript 及 CSS 動畫負責，直到結果出爐才與後端通訊（例如儲存紀錄或判斷邏輯），減少伺服器負載。
+### 決策 1：使用 Flask Blueprint 組織路由
+
+**決定：** 將任務相關路由封裝在 `app/routes/tasks.py` 並以 Blueprint 方式掛載。
+
+**原因：**
+- 避免所有路由都堆在 `app.py`，未來新增功能（如使用者登入）不會造成混亂
+- Blueprint 支援 URL prefix（如 `/tasks`），路由命名更清晰
+
+---
+
+### 決策 2：使用 SQLAlchemy ORM 而非 sqlite3
+
+**決定：** 使用 `Flask-SQLAlchemy` 操作資料庫，而非直接使用 Python 內建的 `sqlite3`。
+
+**原因：**
+- ORM 自動處理參數化查詢，防止 SQL Injection
+- 用 Python 物件操作資料，程式碼更易讀
+- 未來若要換成 PostgreSQL，只需更改連線字串，不需重寫 SQL
+
+---
+
+### 決策 3：使用 Jinja2 模板繼承（Template Inheritance）
+
+**決定：** 建立 `base.html` 基底模板，其他頁面繼承它（`{% extends "base.html" %}`）。
+
+**原因：**
+- 導覽列、CSS 引入、`<head>` 區塊只需寫一次
+- 各頁面只需實作 `{% block content %}` 部分，維護成本低
+
+---
+
+### 決策 4：前端 JavaScript 處理篩選（F05）
+
+**決定：** 依完成狀態篩選由前端 `filter.js` 以 CSS class 切換實作，不發新 HTTP Request。
+
+**原因：**
+- 任務數量少（個人使用），所有資料一次載入即可
+- 前端切換即時反應，使用體驗更流暢（無頁面閃爍）
+- 減少後端路由複雜度
+
+---
+
+### 決策 5：SQLite 資料庫放在 `instance/` 資料夾
+
+**決定：** Flask 的 `instance_path` 預設指向 `instance/`，資料庫檔案放置此處並加入 `.gitignore`。
+
+**原因：**
+- `instance/` 是 Flask 官方慣例，存放環境相關設定與資料
+- 避免資料庫檔案被 commit 進版本控制，防止個資外洩
+- 部署到不同環境時，只需建立新的 `database.db`，不影響程式碼
+
+---
+
+## 5. 技術堆疊總覽
+
+```
+┌────────────────────────────────────────────────┐
+│          使用者瀏覽器 (Browser)                  │
+│  HTML + CSS (style.css) + JS (filter.js)        │
+└────────────────────┬───────────────────────────┘
+                     │ HTTP Request / Response
+┌────────────────────▼───────────────────────────┐
+│            Flask Web Server                     │
+│  ┌──────────────────────────────────────────┐  │
+│  │  Controller（routes/tasks.py）           │  │
+│  ├──────────────────────────────────────────┤  │
+│  │  Model（models/task.py）                 │  │
+│  │  ↕ SQLAlchemy ORM                        │  │
+│  ├──────────────────────────────────────────┤  │
+│  │  View（templates/tasks/index.html）      │  │
+│  │  Jinja2 渲染 HTML                        │  │
+│  └──────────────────────────────────────────┘  │
+└────────────────────┬───────────────────────────┘
+                     │ ORM Query
+┌────────────────────▼───────────────────────────┐
+│      SQLite（instance/database.db）             │
+│      資料表：task                               │
+└────────────────────────────────────────────────┘
+```
+
+---
+
+## 相關文件
+
+- [PRD.md](./PRD.md) — 產品需求文件（已完成）
+- [DB_Schema.md](./DB_Schema.md) — 資料庫設計（待產出）
+- [API_Design.md](./API_Design.md) — 路由與 API 設計（待產出）
