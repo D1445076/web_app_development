@@ -1,0 +1,215 @@
+/* style.css - Premium Glassmorphism & Dark Interface */
+
+:root {
+    --bg-base: #0f172a;          /* Deep Slate */
+    --bg-secondary: #1e293b;
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+    
+    --accent-primary: #8b5cf6;   /* Vibrant Purple */
+    --accent-secondary: #3b82f6; /* Bright Blue */
+    --accent-success: #10b981;   /* Emerald Green */
+    --danger: #ef4444;           /* Rose Red */
+    
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-bg-hover: rgba(51, 65, 85, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    
+    --transition-snappy: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    /* Soft ambient background gradient */
+    background-image: 
+        radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 25%);
+    background-attachment: fixed;
+    overflow-y: scroll;
+}
+
+/* Utilities */
+.text-gradient {
+    background: linear-gradient(135deg, #c4b5fd, #8b5cf6, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Glassmorphism Basics */
+.glass-navbar {
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem;
+    box-shadow: var(--glass-shadow);
+}
+
+.glass-item {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    transition: all var(--transition-snappy);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.glass-item:hover {
+    background: var(--glass-bg-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Glow Effects */
+.card-glow {
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    background: var(--accent-primary);
+    filter: blur(100px);
+    opacity: 0.15;
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+}
+.card-glow.top-right { top: -50px; right: -50px; background: var(--accent-primary); }
+.card-glow.bottom-left { bottom: -50px; left: -50px; background: var(--accent-secondary); }
+
+/* Form Controls */
+.form-control-glass {
+    background-color: rgba(15, 23, 42, 0.5) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-primary) !important;
+    border-radius: 0.75rem 0 0 0.75rem;
+    padding-left: 1.5rem;
+    transition: all var(--transition-snappy);
+}
+.form-control-glass::placeholder { color: var(--text-muted); }
+.form-control-glass:focus {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    border-color: var(--accent-primary) !important;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 0 4px rgba(139, 92, 246, 0.25) !important;
+}
+
+.btn-gradient {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border: none;
+    border-radius: 0 0.75rem 0.75rem 0;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-snappy);
+}
+.btn-gradient:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+}
+
+/* Filter Buttons */
+.btn-glass {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border: 1px solid transparent;
+    border-radius: 2rem;
+    padding: 0.35rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-snappy);
+}
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+.btn-glass.active {
+    background: rgba(139, 92, 246, 0.2);
+    color: #c4b5fd;
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
+}
+
+/* Task Item Elements */
+.task-title {
+    font-size: 1.05rem;
+    transition: color 0.3s ease;
+}
+
+.status-icon {
+    font-size: 1.4rem;
+    transition: all var(--transition-snappy);
+}
+.icon-hover:hover {
+    color: var(--accent-primary) !important;
+    transform: scale(1.15);
+}
+
+.icon-btn-hover {
+    opacity: 0.6;
+    transition: all var(--transition-snappy);
+}
+.icon-btn-hover:hover {
+    opacity: 1;
+    transform: scale(1.2);
+    color: var(--danger) !important;
+}
+
+/* Completion visual feedback */
+.completion-bg {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 0;
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%);
+    z-index: 0;
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.completion-bg.active { width: 100%; }
+
+/* Animations */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+.pulse-animation { animation: pulse 0.4s ease-out forwards; }
+.pulse-animation-slow { animation: pulse 3s infinite ease-in-out; }
+
+/* Empty state styling */
+.empty-icon-box {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex; align-items: center; justify-content: center;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+.empty-icon { font-size: 2.5rem; color: var(--text-muted); }
+
+/* Animation for items dropping in via JS or initial load */
+.fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Assign delay variables for sequential rendering if desired */
+.task-list li:nth-child(1) { animation-delay: 0.05s; }
+.task-list li:nth-child(2) { animation-delay: 0.1s; }
+.task-list li:nth-child(3) { animation-delay: 0.15s; }
+.task-list li:nth-child(4) { animation-delay: 0.2s; }
+.task-list li:nth-child(5) { animation-delay: 0.25s; }

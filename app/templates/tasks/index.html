@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}個人任務清單 - 任務管理系統{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        
+        <!-- 新增任務表單與卡片 -->
+        <div class="glass-card main-card p-4 p-md-5 mb-5 shadow-lg position-relative overflow-hidden">
+            <!-- 裝飾用光暈 -->
+            <div class="card-glow top-right"></div>
+            <div class="card-glow bottom-left"></div>
+            
+            <div class="position-relative z-1">
+                <header class="text-center mb-4">
+                    <h1 class="display-6 fw-bold text-gradient mb-1">任務清單</h1>
+                    <p class="text-muted sub-title">掌握進度，專注每一天</p>
+                </header>
+
+                <form action="{{ url_for('tasks.create') }}" method="POST" class="add-task-form mb-4">
+                    <div class="input-group input-group-lg shadow-sm">
+                        <input type="text" class="form-control form-control-glass focus-ring focus-ring-primary" 
+                               name="title" placeholder="準備做些什麼呢？" required autocomplete="off" autofocus>
+                        <button class="btn btn-primary btn-gradient px-4 add-btn" type="submit">
+                            <i class="fa-solid fa-plus me-1"></i> 新增
+                        </button>
+                    </div>
+                </form>
+
+                <!-- 狀態篩選區塊 -->
+                <div class="filters d-flex justify-content-center gap-2 mb-4">
+                    <button class="btn btn-glass filter-btn active" data-filter="all">全部</button>
+                    <button class="btn btn-glass filter-btn" data-filter="false">待完成</button>
+                    <button class="btn btn-glass filter-btn" data-filter="true">已完成</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任務列表區塊 -->
+        <div class="task-list-container position-relative">
+            {% if tasks %}
+                <ul class="list-unstyled task-list" id="taskList">
+                    {% for task in tasks %}
+                    <li class="task-item glass-item mb-3 shadow-sm d-flex align-items-center justify-content-between p-3 position-relative overflow-hidden" 
+                        data-done="{{ 'true' if task.is_done else 'false' }}">
+                        
+                        <!-- 背景進度條裝飾(若已完成) -->
+                        <div class="completion-bg {{ 'active' if task.is_done else '' }}"></div>
+
+                        <div class="d-flex align-items-center position-relative z-1 flex-grow-1 overflow-hidden pe-3">
+                            <!-- Toggle 完成狀態表單 -->
+                            <form action="{{ url_for('tasks.toggle', id=task.id) }}" method="POST" class="m-0 me-3">
+                                <button type="submit" class="btn btn-link p-0 text-decoration-none toggle-btn check-circle-btn">
+                                    {% if task.is_done %}
+                                    <i class="fa-solid fa-circle-check fa-lg text-success status-icon pulse-animation"></i>
+                                    {% else %}
+                                    <i class="fa-regular fa-circle fa-lg text-muted status-icon icon-hover"></i>
+                                    {% endif %}
+                                </button>
+                            </form>
+                            
+                            <!-- 任務文字 -->
+                            <span class="task-title {{ 'text-decoration-line-through text-muted fw-light' if task.is_done else 'fw-medium text-light' }} text-truncate">
+                                {{ task.title }}
+                            </span>
+                        </div>
+                        
+                        <!-- 刪除任務表單 -->
+                        <form action="{{ url_for('tasks.delete', id=task.id) }}" method="POST" class="m-0 delete-form position-relative z-1" 
+                              onsubmit="return confirm('確定要刪除「{{ task.title }}」嗎？');">
+                            <button type="submit" class="btn btn-link text-danger p-2 delete-btn icon-btn-hover" title="刪除任務">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+                
+                <!-- 空狀態提示 (隱藏的 fallback，可能由 JS 顯示) -->
+                <div id="emptySearchState" class="empty-state text-center py-5 d-none">
+                    <div class="empty-icon-box mx-auto mb-3">
+                        <i class="fa-solid fa-magnifying-glass mb-0 empty-icon"></i>
+                    </div>
+                    <h5 class="fw-semibold mb-1 text-light">無符合項</h5>
+                    <p class="text-muted small">這個狀態下沒有對應的任務。</p>
+                </div>
+            {% else %}
+                <!-- 真正的無資料空狀態 -->
+                <div class="empty-state glass-card text-center py-5 px-3">
+                    <div class="empty-icon-box mx-auto mb-3">
+                        <i class="fa-solid fa-box-open mb-0 empty-icon pulse-animation-slow"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2 mt-4 text-gradient">目前沒有任何任務！</h4>
+                    <p class="text-muted mb-0">點擊上方的輸入框，開始建立屬於你的待辦清單吧！</p>
+                </div>
+            {% endif %}
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/filter.js') }}"></script>
+{% endblock %}
